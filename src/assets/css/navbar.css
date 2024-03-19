@@ -1,0 +1,108 @@
+*{
+    margin:0;
+    padding: 0;
+    box-sizing: border-box;
+}
+nav{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    /* background-image: linear-gradient(to right,white,#150b4b ); */
+    background-color: #007BC9;
+    box-shadow:0 5px 80px rgba(0, 0, 0, 0.06) ;
+    padding: 10px 80px;
+    height: 5rem;
+}
+
+
+#navbar{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#navbar li{
+    list-style: none;
+    padding: 0 20px;
+    position: relative ;
+
+}
+
+#navbar li a{
+    text-decoration: none;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color:white ;
+    transition: 0.3sec ease-in-out;
+}
+
+#navbar li :hover,#navbar li a.active {
+    color:#FFE000;
+}
+
+
+a{
+    color:white;
+    text-decoration: none  ;
+}
+
+#navbar li a:hover::after,#navbar li a.active::after{
+    content: "";
+    width:30% ;
+    height: 2px;
+    background:#FFE000;
+    position: absolute;
+    bottom:-4px;
+    left:20px
+}
+
+#mobile icon{
+    justify-content: center;
+}
+
+@media screen and (max-width:768px){
+    #navbar{
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        flex-direction: column;
+        position: fixed;
+        top: 90px;
+        right: -300px;
+        height: 100vh;
+        width: 300px;
+        background-image: linear-gradient(to bottom ,white,#150b4b);
+        box-shadow:0 40px 60px rgba(0, 0, 0, 0.1) ;
+        padding: 40px 0 0 10px;
+        
+    }
+    #navbar.active{
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        flex-direction: column;
+        position: fixed;
+        top: 87px;
+        right: -0px;
+        height: 100vh;
+        width: 300px;
+        background-image: linear-gradient(to bottom ,white,#150b4b);
+        
+        box-shadow:0 40px 60px rgba(0, 0, 0, 0.1) ;
+        padding: 40px 0 0 10px;
+        transition: 0.3sec ease-in-out;
+
+        
+    }
+    #mobile{
+        display: block;
+    }
+    #navbar li {
+        margin-bottom: 25px;
+    }
+    #mobile icon{
+        font-size: 24px;
+        cursor: pointer;
+    }
+}
