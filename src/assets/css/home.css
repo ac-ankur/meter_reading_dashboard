@@ -1,19 +1,139 @@
-
-.css-zcbmsk-MuiButtonBase-root-MuiButton-root{
-    background-color: orange !important;
+.css-zcbmsk-MuiButtonBase-root-MuiButton-root {
+  background-color: orange !important;
 }
 
-.css-sghohy-MuiButtonBase-root-MuiButton-root:hover{
+/* .css-sghohy-MuiButtonBase-root-MuiButton-root:hover{
     background-color: rgb(114, 189, 3) !important;
-}
+} */
 
-
-.css-sghohy-MuiButtonBase-root-MuiButton-root{
+/* .css-sghohy-MuiButtonBase-root-MuiButton-root{
     background-color:  rgb(114, 189, 3) !important;
+} */
+
+.css-1ygcj2i-MuiTableCell-root {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+.css-nntnn9-MuiTableCell-root.MuiTableCell-body{
+ border: 1px solid black !important;
+
+}
+.css-f52xg8-MuiTableRow-root:last-child td{
+ border: 1px solid black !important;
+}
+.snackbar-right {
+  left: auto !important;
+  right: 10px !important;
+}
+.sortButton {
+  background-color: #007bc9 !important;
 }
 
-
-.css-1ygcj2i-MuiTableCell-root{
-    font-size: 16px !important;
-    font-weight: 600 !important;
+.table-cell {
+  border-right: 1px solid #ccc;
 }
+
+.css-1ex1afd-MuiTableCell-root {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  display: table-cell;
+  vertical-align: inherit;
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+  text-align: center !important;
+  padding: 8px !important;
+  color: black !important;
+}
+.css-1qsyyd8 {
+  border-radius: 5px;
+}
+.css-1d3f8j8-MuiButtonBase-root-MuiButton-root.Mui-disabled {
+  color: black !important;
+  background-color: orange;
+}
+.pagenatbut {
+  padding: 5px;
+  margin-left: 5px;
+  border-radius: 2px;
+}
+.pageN {
+  padding: 15px;
+}
+
+.css-t64be4.Mui-disabled {
+  background-color: rgb(209, 139, 9) !important;
+  color: black !important;
+}
+
+.css-1e6y48t-MuiButtonBase-root-MuiButton-root.Mui-disabled {
+  background-color: rgb(2, 157, 2) !important;
+  color: white !important;
+}
+
+.active {
+  background-color: #007bc9;
+
+  color: white; /* Optionally, change text color to white for better contrast */
+}
+
+.css-1ujsas3.Mui-disabled {
+  background-color: rgb(2, 157, 2) !important;
+  color: white !important;
+}
+
+.css-j66vse {
+  padding: 5px !important;
+  border-radius: 5px !important;
+}
+
+.css-1jy569b-MuiFormLabel-root-MuiInputLabel-root {
+  background-color: white;
+}
+
+.zoomeffect {display: flex;
+  /* position: absolute; */
+  bottom: 6px;
+  right: 3px;
+  display: grid;
+  color: white;
+}
+svg.MuiSvgIcon-root.MuiSvgIcon-fontSizeMedium.zoombtn.css-i4bv87-MuiSvgIcon-root {
+  font-size: 30px;
+  color: white;
+  margin: 5px;
+  padding: 3px;
+  border-radius: 5px;
+  background-color: dimgrey;
+  font-size: 40px;
+  color: white;
+  cursor: pointer;
+}
+@media screen and (max-width: 450px) {
+  .modal1 {
+    flex-direction: column;
+    width: 90% ! IMPORTANT;
+    overflow-y: scroll;
+  }
+  .imageBox ,.meterBox, .remarkBox{
+    width: 100% !important;
+    margin: 0px !important
+}
+.MuiModal-root.css-79ws1d-MuiModal-root {
+    position: absolute;
+    top: 400px;
+    bottom: 36px;
+}
+.closeBtn{display: none;}
+.remarkDropdown{min-width: 100%;}
+body{overflow: scroll !important;}
+nav {
+    padding: 20px;
+}
+}
+
+.css-f070og-MuiTableCell-root.MuiTableCell-body{
+  border: 1px solid black !important;
+}
+           

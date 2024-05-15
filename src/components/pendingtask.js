@@ -7,11 +7,8 @@ import {
   Button,
   Menu,
   MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
 } from "@mui/material";
-import { Close, Visibility } from "@mui/icons-material";
+import { Close, Visibility, ModeEdit } from "@mui/icons-material";
 import Snackbar from "@mui/material/Snackbar";
 import { styled } from "@mui/material/styles";
 import Table from "@mui/material/Table";
@@ -24,16 +21,14 @@ import Paper from "@mui/material/Paper";
 import MuiAlert from "@mui/material/Alert";
 import * as FileSaver from "file-saver";
 import * as XLSX from "xlsx";
-import RemarksModal from "./remarksmodal";
+// import RemarksModal from "./remarksmodal";
+
 import "../assets/css/home.css";
 import helmet from "helmet";
 import axios from "axios";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import NavBar from "./navbar";
-import Slider from "@mui/material/Slider";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -41,7 +36,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     color: theme.palette.common.black,
     fontWeight: 600,
     fontSize: 16,
-    padding: 14,
+    padding: 18,
     border: "1px solid black",
     borderRight: "1px solid black",
   },
@@ -62,16 +57,20 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const MyTask = () => {
+const PendingTask = () => {
   const [tasks, setTasks] = useState([]);
   const [openEditMeterReading, setOpenEditMeterReading] = useState(false);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState(null);
   const [editedMeterReading, setEditedMeterReading] = useState("");
+
   const [selectedTask, setSelectedTask] = useState(null);
   const [openImageView, setOpenImageView] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  // const [openEditMeterReading, setOpenEditMeterReading] = useState(false);
+  // const [editedMeterReading, setEditedMeterReading] = useState("");
   const [anchorElSort, setAnchorElSort] = useState(null);
   const [anchorElFilter, setAnchorElFilter] = useState(null);
+
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -83,32 +82,44 @@ const MyTask = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
   const [remark, setRemark] = useState("");
-  const [selectedRemarksOption, setSelectedRemarksOption] = useState("");
-  const [customRemarks, setCustomRemarks] = useState("");
-  const [openDownloadModal, setOpenDownloadModal] = useState(false);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [tableData, setTableData] = useState("");
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const [zoomLevel, setZoomLevel] = useState(1);
+
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const handleRemarksChange = (event) => {
-    const { value } = event.target;
-    setSelectedRemarksOption(value);
-    // Reset custom remarks when selecting other options
-    if (value !== "Others") {
-      setCustomRemarks("");
-    }
-  };
-  const handleStartDateChange = (event) => {
-    setStartDate(event.target.value);
+  const handleOpenRemarksModal = (task) => {
+    setSelectedTaskDetails(task); // Set selected task details
+    setOpenRemarksModal(true); // Open the remarks modal
   };
 
-  const handleEndDateChange = (event) => {
-    setEndDate(event.target.value);
+  const handleCloseRemarksModal = () => {
+    setOpenRemarksModal(false);
   };
+
   const [uploadedData, setUploadedData] = useState(null);
+  const getData = async () => {
+    try {
+      const requestBody = {
+        userId: "admin",
+      };
+      const response = await fetch(
+        "https://api.consultit.world/admin/uploadeddata",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+      if (response.ok) {
+      } else {
+        throw new Error("Failed to fetch data");
+      }
+    } catch (error) {}
+  };
   const fetchData = async () => {
     try {
       // Request body
@@ -132,19 +143,38 @@ const MyTask = () => {
         // Parse the JSON data from the response
         const data = await response.json();
         // Set the data to the state variable
-        const modifiedData = data.map((item) => ({
-          ...item,
-          meter_photo_path: `https://api.consultit.world/meter/${item.meter_photo_path.replace(
-            "uploads/bpcl/",
-            ""
-          )}`,
-          croped_reading_path: `https://api.consultit.world/meter/${item.croped_reading_path.replace(
-            "uploads/bpcl/",
-            ""
-          )}`,
-          capture_time_formatted: new Date(item.capture_time).toLocaleString(),
-          upload_time_formatted: new Date(item.upload_time).toLocaleString(),
-        }));
+        console.log("log", data);
+        const verifiedTasks = data.filter(
+          (task) => task.is_manual_verify === "N"
+        );
+        const modifiedData = verifiedTasks.map((item) => {
+          // Get date and time separately
+          const uploadDate = new Date(item.upload_time);
+          const uploadTime = new Date(item.upload_time);
+
+          // Formatting date
+          const formattedDate = `${uploadDate.getDate()}/${
+            uploadDate.getMonth() + 1
+          }/${uploadDate.getFullYear()}`;
+
+          // Formatting time
+          const formattedTime = `${uploadTime.getHours()}:${uploadTime.getMinutes()}:${uploadTime.getSeconds()}`;
+
+          return {
+            ...item,
+            upload_date: formattedDate, // Separate date
+            upload_time: formattedTime, // Separate time
+            meter_photo_path: `http://3.110.171.162/files/${item.meter_photo_path.replace(
+              "uploads/bpcl/",
+              ""
+            )}`,
+            croped_reading_path: `http://3.110.171.162/cfiles/${item.croped_reading_path.replace(
+              "uploads/bpcl/",
+              ""
+            )}`,
+          };
+        });
+
         // console.log(data);
         console.log("Modified data:", modifiedData);
         setUploadedData(modifiedData);
@@ -171,13 +201,6 @@ const MyTask = () => {
     setSelectedTaskDetails(task);
     setOpenEditMeterReading(true);
   };
-  const handleZoomIn = () => {
-    setZoomLevel(zoomLevel + 0.1);
-  };
-
-  const handleZoomOut = () => {
-    setZoomLevel(Math.max(0.1, zoomLevel - 0.1)); // Ensuring zoom level doesn't go below 0.1
-  };
 
   const openImageViewModal = (imageURL, task) => {
     if (imageURL && imageURL !== "undefined") {
@@ -189,15 +212,10 @@ const MyTask = () => {
       }
     } else {
       console.error("Invalid image URL:", imageURL);
+      // Optionally, you can display an error message to the user or handle the case in any other appropriate way
     }
   };
-  const handleCloseImageView = (imageURL, task) => {
-    setSelectedRemarksOption("");
-    setCustomRemarks("");
-    setEditedMeterReading("");
-    setOpenImageView(false);
-    setZoomLevel(1);
-  };
+
   const handleSnackbarClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
@@ -229,9 +247,6 @@ const MyTask = () => {
     const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     return wbout;
   };
-  const handleZoomChange = (event, newValue) => {
-    setZoomLevel(newValue);
-  };
 
   const downloadXLSX = () => {
     const wbout = convertToXLSX(tasks);
@@ -239,17 +254,45 @@ const MyTask = () => {
     FileSaver.saveAs(blob, "task_report.xlsx");
   };
 
+  const downloadReport = () => {
+    if (!uploadedData || uploadedData.length === 0) {
+      console.log("No data to export.");
+      return;
+    }
+
+    const filename = "report.xlsx";
+
+    // Extracting only required fields from uploadedData
+    const dataSubset = uploadedData.map((task, index) => ({
+      "Serial Number": (currentPage - 1) * itemsPerPage + index + 1,
+      "Meter ID": task.meterid,
+      "Meter Reading": task.meterreading,
+      Date: task.upload_date,
+      Time: task.upload_time,
+    }));
+
+    // Creating Excel file
+    const worksheet = XLSX.utils.json_to_sheet(dataSubset);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+
+    // Saving the Excel file
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const data = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+    });
+    FileSaver.saveAs(data, filename);
+  };
+
   const handleSaveMeterReading = async () => {
     try {
-      if (!selectedTaskDetails || !editedMeterReading.trim()) {
-        // Check if a task is selected and editedMeterReading is not empty
-        console.error("Task or meter reading value is missing");
-        return;
-      }
+      if (!selectedTaskDetails) return; // Check if a task is selected
       const requestBody = {
         taskid: selectedTaskDetails.localtaskid,
         readingdata: editedMeterReading,
-        taskremark: remark,
       };
       console.log("selected local task id", selectedTaskDetails.localtaskid);
       console.log("selected local meter  reading", editedMeterReading);
@@ -273,7 +316,7 @@ const MyTask = () => {
         setSnackbarMessage("OCR updated successfully.");
         setSnackbarOpen(true);
         console.log("Meter reading updated successfully");
-        // setOpenImageView(false);
+        setOpenImageView(false);
         setEditedMeterReading("");
       } else {
         // Handle error
@@ -288,35 +331,31 @@ const MyTask = () => {
       console.error("Error updating meter reading:", error);
     }
   };
-  const handleSubmitRemarks = async (localtaskid) => {
+  const handleSubmitRemarks = async (
+    selectedOption,
+    otherRemarks,
+    localtaskid
+  ) => {
     try {
-      let remark;
-      // Determine the remark value based on selectedRemarksOption
-      if (selectedRemarksOption === "Others") {
-        remark = customRemarks; // If selectedRemarksOption is "Others", use customRemarks
-      } else {
-        remark = selectedRemarksOption; // Otherwise, use selectedRemarksOption
-      }
-
       // Make a POST request to the API
-      console.log("remarks,taskid", remark, localtaskid);
+      console.log(localtaskid, selectedOption);
+
       const response = await axios.post(
         "https://api.consultit.world/admin/checkmeterreading",
         {
           taskid: localtaskid,
           verify: "Y",
-          remark: remark,
+          remark: selectedOption ? selectedOption : otherRemarks,
         }
       );
 
       // Check if the request was successful
+      console.log(localtaskid, selectedOption);
       if (response.status === 200) {
         // Show success message to the user
         setSnackbarSeverity("success");
         setSnackbarMessage("Remarks submitted successfully");
         setSnackbarOpen(true);
-        setOpenImageView(false);
-
         fetchData();
         // Optionally, you can perform any other actions here upon successful submission
       } else {
@@ -381,15 +420,6 @@ const MyTask = () => {
     pageNumbers.push(i);
   }
 
-  const handleDownloadReport = () => {
-    // Perform report download logic here based on startDate and endDate
-    // For example:
-    console.log("Start Date:", startDate);
-    console.log("End Date:", endDate);
-    // Close the download modal after processing
-    setOpenDownloadModal(false);
-  };
-
   return (
     <div>
       <div>
@@ -415,21 +445,22 @@ const MyTask = () => {
           >
             <h2
               style={{
-                fontSize: "20px",
+                fontSize: "1.5rem",
                 margin: "0",
                 color: "white",
                 padding: "5px",
+                borderRadius: "5px",
               }}
             >
-              All Tasks
+              Pending Tasks
             </h2>
           </Box>
-
+          <Box>
+          {/* 
           <Box>
             <Button
               variant="contained"
               // color="primary"
-
               aria-controls="sort-menu"
               aria-haspopup="true"
               onClick={(event) => setAnchorElSort(event.currentTarget)}
@@ -471,127 +502,116 @@ const MyTask = () => {
                 Pending Tasks
               </MenuItem>
             </Menu>
+          </Box> */}
+           <Menu
+              id="filter-menu"
+              anchorEl={anchorElFilter}
+              open={Boolean(anchorElFilter)}
+              onClose={() => setAnchorElFilter(null)}
+            >
+              <MenuItem onClick={() => filterTasksByStatus("Verified")}>
+                Completed Tasks
+              </MenuItem>
+              <MenuItem onClick={() => filterTasksByStatus(" OCR Pending")}>
+                Pending Tasks
+              </MenuItem>
+            </Menu>
           </Box>
         </Box>
         <Box style={{ display: "flex" }}>
           <Button
-            onClick={downloadXLSX}
+            // variant="contained"
+            // onClick={() => setOpenDownloadModal(true)}
+            onClick={downloadReport}
             style={{
-              marginRight: "15px",
-              justifyContent: "flex-end",
-              alignItems: "center",
-              color: "black",
-              background: "lightseagreen",
-              margin: "5px",
-              border: "2px solid black",
-              marginLeft: "0px",
-            }}
+                marginRight: "10px",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                color: "black ",
+                background: "#ff97a8",
+                margin: "5px",
+                border: "2px solid black",
+              }}
           >
             Download Report
           </Button>
-          <Button
-            style={{
-              marginRight: "10px",
-              justifyContent: "flex-end",
-              alignItems: "center",
-              color: "black !important",
-              background: "lightseagreen",
-              margin: "5px",
-              border: "2px solid black",
-            }}
-          >
-            <Link to="/verifiedtask" style={{ color: "black" }}>
-              Verified Task
-            </Link>
-          </Button>
+          <Link to="/reports" style={{ color: "black" }}>
+            <Button
+              style={{
+                marginRight: "10px",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                color: "black ",
+                background: "#ff97a8",
+                margin: "5px",
+                border: "2px solid black",
+              }}
+            >
+              OCR Completed Task
+            </Button>
+          </Link>
         </Box>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
                 <StyledTableCell className="table-cell">Sr No.</StyledTableCell>
-                <StyledTableCell className="table-cell">
+                {/* <StyledTableCell className="table-cell">
                   Local Task ID
-                </StyledTableCell>
+                </StyledTableCell> */}
 
-                <StyledTableCell className="table-cell">
+                {/* <StyledTableCell className="table-cell">
                   Server Task ID
-                </StyledTableCell>
-                <StyledTableCell className="table-cell">
+                </StyledTableCell> */}
+                {/* <StyledTableCell className="table-cell">
                   Capture Date
-                </StyledTableCell>
-                <StyledTableCell className="table-cell">
-                  Uploaded Date
-                </StyledTableCell>
-                <StyledTableCell className="table-cell">
+                </StyledTableCell> */}
+
+                {/* <StyledTableCell className="table-cell">
                   Full Image{" "}
                 </StyledTableCell>
                 <StyledTableCell className="table-cell">
                   Cropped Image{" "}
-                </StyledTableCell>
+                </StyledTableCell> */}
                 <StyledTableCell className="table-cell">
                   Meter ID
                 </StyledTableCell>
                 <StyledTableCell className="table-cell">
-                  OCR Reading
+                  Meter Reading
                 </StyledTableCell>
-
+                <StyledTableCell className="table-cell">Date</StyledTableCell>
+                <StyledTableCell className="table-cell">Time</StyledTableCell>
+                {/* <StyledTableCell className="table-cell">Edit</StyledTableCell> */}
+                {/* <StyledTableCell className="table-cell">
+                  Remarks
+                </StyledTableCell> */}
                 <StyledTableCell className="table-cell">
-                  Manual Verification
+                  OCR Verification
                 </StyledTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* {uploadedData &&
-                uploadedData.map((task, index) => (
-                  <TableRow key={index}> */}
               {uploadedData &&
                 uploadedData
                   .slice(indexOfFirstItem, indexOfLastItem)
                   .map((task, index) => (
                     <StyledTableRow key={index}>
                       <StyledTableCell className="table-cell">
-                        {task.SNo}
-                      </StyledTableCell>
-
-                      <StyledTableCell className="table-cell">
-                        {task.localtaskid}
-                      </StyledTableCell>
-
-                      <StyledTableCell className="table-cell">
-                        {task.servertaskid}
-                      </StyledTableCell>
-                      <StyledTableCell className="table-cell">
-                        {task.capture_time_formatted}
-                      </StyledTableCell>
-                      <StyledTableCell className="table-cell">
-                        {task.upload_time_formatted}
-                      </StyledTableCell>
-                      <StyledTableCell className="table-cell">
-                        <IconButton
-                          onClick={() =>
-                            openImageViewModal(task.meter_photo_path, task)
-                          }
-                        >
-                          <Visibility />
-                        </IconButton>
-                      </StyledTableCell>
-                      <StyledTableCell className="table-cell">
-                        <IconButton
-                          onClick={() =>
-                            openImageViewModal(task.croped_reading_path, task)
-                          }
-                        >
-                          <Visibility />
-                        </IconButton>
+                        {(currentPage - 1) * itemsPerPage + index + 1}
                       </StyledTableCell>
                       <StyledTableCell className="table-cell">
                         {task.meterid}
                       </StyledTableCell>
                       <StyledTableCell className="table-cell">
-                        {task.meterreading}{" "}
+                        {task.meterreading}
                       </StyledTableCell>
-
+                      <StyledTableCell className="table-cell">
+                        {task.upload_date}
+                      </StyledTableCell>
+                      <StyledTableCell className="table-cell">
+                        {task.upload_time}
+                      </StyledTableCell>
+                      
                       <StyledTableCell className="table-cell">
                         <Button
                           disabled
@@ -600,13 +620,13 @@ const MyTask = () => {
                               ? "primary"
                               : "secondary"
                           }
-                          onClick={() => {}}
                         >
                           {task.is_manual_verify === "Y"
                             ? "Verified"
                             : "Pending"}
                         </Button>
                       </StyledTableCell>
+
                     </StyledTableRow>
                   ))}
             </TableBody>
@@ -627,9 +647,87 @@ const MyTask = () => {
             {snackbarMessage}
           </MuiAlert>
         </Snackbar>
+        {/* <div style={{ display: "flex" ,flexDirection: "row", alignItems: "flex-start"}}>
+        <Modal
+          open={openEditMeterReading}
+          onClose={() => setOpenEditMeterReading(false)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            width: "50%"
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              border: "2px solid #570b4b",
+              borderRadius: "10px",
+              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+              padding: "20px",
+              position: "relative",
+              maxWidth: "50%",
+            }}
+          >
+            <IconButton
+              onClick={() => setOpenEditMeterReading(false)}
+              style={{
+                position: "absolute",
+                top: "5px",
+                right: "5px",
+              }}
+            >
+              <Close />
+            </IconButton>
+            <h2>Edit Meter Reading</h2>
+            <hr />
+            {selectedTaskDetails && (
+              <div>
+                <p>Task ID: {selectedTaskDetails.localtaskid}</p>
+                <p>Meter ID: {selectedTaskDetails.meterid}</p>
+                <p>Meter Reading:{selectedTaskDetails.meterreading}</p>
+                <TextField
+                  label="New Meter Reading"
+                  value={editedMeterReading}
+                  onChange={(e) => setEditedMeterReading(e.target.value)}
+                  fullWidth
+                  margin="normal"
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  style={{ marginTop: "20px" }}
+                  onClick={handleSaveMeterReading}
+                >
+                  Save
+                </Button>
+              </div>
+            )}
+          </div>
+        </Modal>
+        
         <Modal
           open={openImageView}
-          onClose={handleCloseImageView}
+          onClose={() => setOpenImageView(false)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "50%"
+          }}
+        >
+          <div style={{ backgroundColor: "white", padding: "20px" }}>
+            <img
+              src={selectedImageURL}
+              alt="Meter Image"
+              style={{ maxWidth: "100%", maxHeight: "60vh" }}
+            />
+          </div>
+        </Modal>
+        </div> */}
+        <Modal
+          open={openImageView}
+          onClose={() => setOpenImageView(false)}
           style={{
             display: "flex",
             alignItems: "center",
@@ -637,213 +735,62 @@ const MyTask = () => {
           }}
         >
           <div
-            className="modal1"
             style={{
               display: "flex",
               width: "80%",
               backgroundColor: "white",
               padding: "20px",
-              borderRadius: "5px",
             }}
           >
-            <IconButton
-              className="closeBtn"
-              style={{
-                position: "absolute",
-                top: "40px",
-                right: "80px",
-                fontSize: "50px",
-                color: "white",
-              }}
-              onClick={handleCloseImageView}
-            >
-              <Close fontSize="large" />
-            </IconButton>
-
-            <div
-              className="imageBox"
-              style={{
-                width: "30%",
-                border: "2px solid grey",
-                borderRadius: "2px",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                transition: "transform 0.3s ease",
-                position: "relative",
-              }}
-            >
+            <div style={{ width: "50%", paddingRight: "20px" }}>
               {/* Image */}
-
               <img
                 src={selectedImageURL}
-                // alt="Meter Image"
-                style={{
-                  maxWidth: "100%",
-                  transition: "transform 0.3s ease",
-                  transform: `scale(${zoomLevel})`,
-                }}
-                // onMouseOver={(e) => {
-                //   e.currentTarget.style.transform = 'scale(1.1)';
-                // }}
-                // onMouseOut={(e) => {
-                //   e.currentTarget.style.transform = 'scale(1)';
-                // }}
+                alt="Meter Image"
+                style={{ maxWidth: "100%", maxHeight: "60vh" }}
               />
-              <div
-                className="zoomeffect"
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  zIndex: "1",
-                  alignItems:"center"
-                }}
-              >
-                {/* <ZoomOutIcon className="zoombtn" onClick={handleZoomOut} /> */}
-
-                <Slider
-                  value={zoomLevel}
-                  min={0.1}
-                  max={2} 
-                  step={0.1}
-                  onChange={handleZoomChange}
-                  aria-labelledby="continuous-slider"
-                  style={{
-                    color: "white",
-                    background: "black",
-                    border: "2px solid white",
-                  }}
-                />
-                {/* <ZoomInIcon className="zoombtn" onClick={handleZoomIn} /> */}
-              </div>
             </div>
-            <div
-              className="meterBox"
-              style={{
-                width: "30%",
-                border: "2px solid grey",
-                marginLeft: "5px",
-              }}
-            >
+            <div style={{ width: "50%" }}>
               {/* Edit Meter Reading Content */}
-              <div style={{ padding: "20px" }}>
-                <h2>Edit Meter Reading</h2>
-                <hr />
-                <br />
+              <h2>Edit Meter Reading</h2>
+              <hr />
+              <br />
 
-                {selectedTaskDetails && (
-                  <div>
-                    <p>
-                      <span style={{ fontWeight: "bold" }}>Task ID:</span>{" "}
-                      {selectedTaskDetails.localtaskid}
-                    </p>
-                    <br />
-                    <p>
-                      <span style={{ fontWeight: "bold" }}>Meter ID:</span>{" "}
-                      {selectedTaskDetails.meterid}
-                    </p>
-                    <br />
-                    <p>
-                      <span style={{ fontWeight: "bold" }}>OCR Reading:</span>{" "}
-                      {selectedTaskDetails.meterreading}
-                    </p>
-                    <br />
-
-                    <TextField
-                      label="New Meter Reading"
-                      value={editedMeterReading}
-                      onChange={(e) => setEditedMeterReading(e.target.value)}
-                      fullWidth
-                      required
-                      error={!editedMeterReading.trim()}
-                      helperText={!editedMeterReading.trim() ? "Required" : ""}
-                      margin="normal"
-                    />
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      style={{ marginTop: "20px" }}
-                      onClick={handleSaveMeterReading}
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      style={{
-                        marginTop: "20px",
-                        marginLeft: "20px",
-                        backgroundColor: "grey",
-                        color: "white",
-                      }}
-                      onClick={() => setOpenImageView(false)}
-                    >
-                      Close
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div
-              className="remarkBox"
-              style={{
-                width: "40%",
-                border: "2px solid grey",
-                marginLeft: "5px",
-              }}
-            >
-              {/* Remarks */}
-              <div style={{ padding: "20px" }}>
-                <h2> Add Remarks</h2>
-                <hr />
-                <br />
-                {/* Add your remarks content here */}
+              {selectedTaskDetails && (
                 <div>
-                  <FormControl
-                    className="remarkDropdown"
-                    sx={{ m: 1, minWidth: "100%" }}
-                  >
-                    <InputLabel>Select Remarks</InputLabel>
-                    <Select
-                      value={selectedRemarksOption}
-                      onChange={handleRemarksChange}
-                    >
-                      <MenuItem value="Crop Image Improper">
-                        Crop Image Improper
-                      </MenuItem>
-                      <MenuItem value="OCR error">OCR error</MenuItem>
-                      <MenuItem value="Image quality improper">
-                        Image quality improper
-                      </MenuItem>
-                      <MenuItem value="Not human readable">
-                        Not human readable
-                      </MenuItem>
-                      <MenuItem value="Others">Others</MenuItem>
-                    </Select>
-                  </FormControl>
-                  {selectedRemarksOption === "Others" && (
-                    <TextField
-                      className="customDropdown"
-                      label="Custom Remarks"
-                      value={customRemarks}
-                      onChange={(e) => setCustomRemarks(e.target.value)}
-                      sx={{ width: "100%", marginLeft: "8px" }}
-                      margin="normal"
-                      required
-                    />
-                  )}
+                  <p>
+                    <span style={{ fontWeight: "bold" }}>Task ID:</span>{" "}
+                    {selectedTaskDetails.localtaskid}
+                  </p>
+                  <br />
+                  <p>
+                    <span style={{ fontWeight: "bold" }}>Meter ID:</span>{" "}
+                    {selectedTaskDetails.meterid}
+                  </p>
+                  <br />
+                  <p>
+                    <span style={{ fontWeight: "bold" }}>OCR Reading:</span>{" "}
+                    {selectedTaskDetails.meterreading}
+                  </p>
+                  <br />
+
+                  <TextField
+                    label="New Meter Reading"
+                    value={editedMeterReading}
+                    onChange={(e) => setEditedMeterReading(e.target.value)}
+                    fullWidth
+                    margin="normal"
+                  />
                   <Button
                     variant="contained"
                     color="primary"
                     style={{ marginTop: "20px" }}
-                    sx={{ marginLeft: "8px" }}
-                    onClick={() =>
-                      handleSaveMeterReading(selectedTaskDetails?.localtaskid)
-                    }
+                    onClick={handleSaveMeterReading}
                   >
-                    Save Remarks
+                    Save
                   </Button>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </Modal>
@@ -851,7 +798,7 @@ const MyTask = () => {
       {uploadedData && uploadedData.length > 0 && (
         <div className="pageN">
           <button
-            className="pagenatbut previous"
+            className="pagenatbut"
             onClick={() => paginate(currentPage - 1)}
             disabled={currentPage === 1}
           >
@@ -875,67 +822,8 @@ const MyTask = () => {
           </button>
         </div>
       )}
-      <Modal
-        open={openDownloadModal}
-        onClose={() => setOpenDownloadModal(false)}
-        aria-labelledby="download-modal-title"
-        aria-describedby="download-modal-description"
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            width: 400,
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <h2 id="download-modal-title">Select Date Range</h2>
-          <hr />
-          <br />
-
-          <TextField
-            label="Start Date"
-            type="date"
-            value={startDate}
-            onChange={handleStartDateChange}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="End Date"
-            type="date"
-            value={endDate}
-            onChange={handleEndDateChange}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <Button variant="contained" onClick={handleDownloadReport}>
-            Download
-          </Button>
-          <Button
-            style={{
-              backgroundColor: "grey",
-              color: "white",
-              marginLeft: "20px",
-            }}
-            onClick={() => setOpenDownloadModal(false)}
-          >
-            Cancel
-          </Button>
-        </Box>
-      </Modal>
     </div>
   );
 };
 
-export default MyTask;
+export default PendingTask;

@@ -1,16 +1,16 @@
-import logo from './logo.svg';
-import './App.css';
-import MyTask from './components/home';
-import NavBar from './components/navbar';
-import Footer from './components/footer';
-import MyRoutes from './components/routes';
+import "./App.css";
+import Footer from "./components/footer";
+import MyRoutes from "./components/routes";
+import { AuthProvider } from "./utils/userauth";
 
 function App() {
-  return (<div>
-   <NavBar/>
-  <MyRoutes/>
-   <Footer/>
-   </div>
+  return (
+    <div>
+      <AuthProvider>
+        <MyRoutes />
+      </AuthProvider>
+      <Footer />
+    </div>
   );
 }
 

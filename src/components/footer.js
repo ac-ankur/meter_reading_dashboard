@@ -13,10 +13,10 @@ const Footer = () => {
       <div className="footer-content">
         <div className="left-content">ConsultIT © 2023. All Rights Reserved.</div>
         <div className="right-content">
-        <FontAwesomeIcon icon={faFacebook} className="social-icon" />
+        {/* <FontAwesomeIcon icon={faFacebook} className="social-icon" />
         <FontAwesomeIcon icon={faInstagram}className="social-icon" />
         <FontAwesomeIcon icon={faXTwitter}className="social-icon" />
-        <FontAwesomeIcon icon={faLinkedin}className="social-icon" />
+        <FontAwesomeIcon icon={faLinkedin}className="social-icon" /> */}
 
 
         </div>
